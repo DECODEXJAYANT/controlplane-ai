@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 
+from app.api.evaluation import router as evaluation_router
+
+
 app = FastAPI(
     title="ControlPlane.ai",
     description="Adaptive Autonomy Layer for Enterprise AI",
@@ -14,3 +17,6 @@ def health_check():
         "service": "ControlPlane.ai",
         "version": "0.1.0",
     }
+
+
+app.include_router(evaluation_router)

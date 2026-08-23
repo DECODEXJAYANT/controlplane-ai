@@ -1,0 +1,22 @@
+[
+  {
+    "id": "premium-investment",
+    "product": "Premium Investment",
+    "category": "financial_product",
+    "facts": {
+      "guaranteed_return": false,
+      "maximum_return_percentage": 12,
+      "premium_eligibility_required": true
+    }
+  },
+  {
+    "id": "standard-investment",
+    "product": "Standard Investment",
+    "category": "financial_product",
+    "facts": {
+      "guaranteed_return": false,
+      "maximum_return_percentage": 8,
+      "premium_eligibility_required": false
+    }
+  }
+]
