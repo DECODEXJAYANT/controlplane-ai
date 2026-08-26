@@ -1095,3 +1095,17 @@ h1 {
   }
 
 }
+
+.page-placeholder {
+  padding: 24px 0;
+}
+
+.page-placeholder h1 {
+  margin: 6px 0 8px;
+  font-size: 32px;
+}
+
+.page-placeholder p:last-child {
+  color: #7d8795;
+  font-size: 14px;
+}
