@@ -43,9 +43,14 @@ class KnowledgeBase:
 
             product_words = self._normalize(product)
 
-            # Product is considered relevant when all
-            # meaningful product words appear in the claim.
-            if product_words and product_words.issubset(query_words):
+            if not product_words:
+                continue
+
+            # A document is relevant when at least one
+            # meaningful product term appears in the query.
+            overlap = product_words.intersection(query_words)
+
+            if overlap:
                 results.append(document)
 
         return results
@@ -73,6 +78,11 @@ class KnowledgeBase:
             "to",
             "and",
             "with",
+            "his",
+            "her",
+            "their",
+            "customer",
+            "customers",
         }
 
         return {

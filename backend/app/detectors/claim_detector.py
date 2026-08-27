@@ -11,9 +11,16 @@ class ClaimDetection:
 class ClaimDetector:
 
     CLAIM_PATTERNS = [
-        r"\b\d+(?:\.\d+)?%\b",
-        r"\b(?:guaranteed|will|always|never)\b",
+        # Numeric claims such as 25%, 18.5%, etc.
+        r"\b\d+(?:\.\d+)?%",
+
+        # Strong assertion language.
+        r"\b(?:guaranteed|guarantees|will|always|never)\b",
+
+        # Eligibility / compliance claims.
         r"\b(?:approved|eligible|certified|compliant)\b",
+
+        # Evidence / attribution claims.
         r"\b(?:according to|as per|based on)\b",
     ]
 

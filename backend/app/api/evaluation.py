@@ -71,12 +71,16 @@ def evaluate_response(request: EvaluationRequest):
     #    the normal numerical decision
     critical_risks = []
 
-    if analysis.pii_score >= 0.80:
+    if (
+        analysis.pii_score
+        >= application_policy.critical_pii_threshold
+    ):
         critical_risks.append("critical_pii")
 
     if (
         request.application == "financial_decision"
-        and grounding.contradiction_score > 0
+        and grounding.contradiction_score
+        >= application_policy.financial_claim_threshold
     ):
         critical_risks.append("high_risk_financial_claim")
 
