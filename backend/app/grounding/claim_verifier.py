@@ -83,6 +83,9 @@ class ClaimVerifier:
         mentions_eligibility = (
             "eligible" in claim_lower
             or "eligibility" in claim_lower
+            or "qualify" in claim_lower
+            or "qualifies" in claim_lower
+            or "qualified" in claim_lower
         )
 
         if mentions_eligibility:

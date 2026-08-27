@@ -18,7 +18,7 @@ class ClaimDetector:
         r"\b(?:guaranteed|guarantees|will|always|never)\b",
 
         # Eligibility / compliance claims.
-        r"\b(?:approved|eligible|certified|compliant)\b",
+        r"\b(?:approved|eligible|qualify|qualifies|qualified|certified|compliant)\b",
 
         # Evidence / attribution claims.
         r"\b(?:according to|as per|based on)\b",
