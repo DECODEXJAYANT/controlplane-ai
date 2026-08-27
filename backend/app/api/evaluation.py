@@ -251,3 +251,40 @@ def get_audit_record(record_id: int):
         }
 
     return record
+
+@router.get("/policies")
+def get_policies():
+
+    policies = policy_registry.list_policies()
+
+    return {
+        "count": len(policies),
+        "policies": [
+            {
+                "name": policy.name,
+                "description": policy.description,
+
+                "consequence": {
+                    "workflow_criticality": policy.workflow_criticality,
+                    "user_impact": policy.user_impact,
+                    "regulatory_exposure": policy.regulatory_exposure,
+                    "data_sensitivity": policy.data_sensitivity,
+                    "actionability": policy.actionability,
+                },
+
+                "thresholds": {
+                    "verify": policy.verify_threshold,
+                    "review": policy.review_threshold,
+                    "block": policy.block_threshold,
+                },
+
+                "critical_risks": {
+                    "critical_pii_threshold": policy.critical_pii_threshold,
+                    "financial_claim_threshold": policy.financial_claim_threshold,
+                    "critical_pii_action": policy.critical_pii_action,
+                    "financial_claim_action": policy.financial_claim_action,
+                },
+            }
+            for policy in policies
+        ],
+    }

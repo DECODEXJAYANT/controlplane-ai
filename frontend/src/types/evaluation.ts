@@ -75,3 +75,33 @@ export interface EvaluationResult {
     reason: string;
   };
 }
+export interface ApplicationPolicy {
+  name: string;
+  description: string;
+
+  consequence: {
+    workflow_criticality: number;
+    user_impact: number;
+    regulatory_exposure: number;
+    data_sensitivity: number;
+    actionability: number;
+  };
+
+  thresholds: {
+    verify: number;
+    review: number;
+    block: number;
+  };
+
+  critical_risks: {
+    critical_pii_threshold: number;
+    financial_claim_threshold: number;
+    critical_pii_action: string;
+    financial_claim_action: string;
+  };
+}
+
+export interface PoliciesResponse {
+  count: number;
+  policies: ApplicationPolicy[];
+}

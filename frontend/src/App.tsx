@@ -13,6 +13,9 @@ import AuditLog from "./components/audit/AuditLog";
 
 import "./App.css";
 
+import RiskMonitor from "./components/RiskMonitor";
+import PoliciesPanel from "./components/policies/PoliciesPanel";
+
 type Page =
   | "overview"
   | "evaluate"
@@ -78,35 +81,10 @@ function App() {
         );
 
       case "policies":
-        return (
-          <div className="page-placeholder">
-            <p className="eyebrow">
-              CONTROL
-            </p>
-
-            <h1>Policies</h1>
-
-            <p>
-              Application governance policies will appear
-              here.
-            </p>
-          </div>
-        );
+        return <PoliciesPanel />;
 
       case "risk":
-        return (
-          <div className="page-placeholder">
-            <p className="eyebrow">
-              OBSERVE
-            </p>
-
-            <h1>Risk Monitor</h1>
-
-            <p>
-              Risk monitoring dashboard will appear here.
-            </p>
-          </div>
-        );
+        return <RiskMonitor />;
 
       case "settings":
         return (

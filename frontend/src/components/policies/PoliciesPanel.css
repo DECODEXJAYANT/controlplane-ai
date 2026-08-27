@@ -1,0 +1,494 @@
+.policies-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+.policies-page .page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+
+.policy-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 14px;
+
+  border: 1px solid #252b36;
+  border-radius: 8px;
+
+  background: #0d1016;
+
+  color: #aeb8c8;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+
+.governance-flow {
+  display: flex;
+  align-items: center;
+
+  padding: 14px 18px;
+
+  border: 1px solid #252b36;
+  border-radius: 8px;
+
+  background: #10131a;
+}
+
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #a9b4c6;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  white-space: nowrap;
+}
+
+
+.flow-step span {
+  color: #819cff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+
+.flow-line {
+  height: 1px;
+  flex: 1;
+
+  margin: 0 14px;
+
+  background: #272d38;
+}
+
+
+.policies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+.policy-card {
+  border: 1px solid #252b36;
+  border-radius: 12px;
+
+  background: #0d1016;
+
+  overflow: hidden;
+}
+
+
+.policy-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  padding: 24px;
+
+  border-bottom: 1px solid #202631;
+}
+
+
+.policy-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+.policy-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #30384a;
+  border-radius: 9px;
+
+  background: #151923;
+
+  color: #819cff;
+}
+
+
+.policy-title-row h2 {
+  margin: 0 0 5px;
+
+  color: #f1f3f7;
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+
+.policy-title-row p {
+  margin: 0;
+
+  color: #77849a;
+
+  font-size: 13px;
+}
+
+
+.policy-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 9px;
+
+  border: 1px solid #263a31;
+  border-radius: 6px;
+
+  color: #71dba0;
+
+  background: #101915;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+
+.policy-section {
+  padding: 22px 24px;
+
+  border-bottom: 1px solid #202631;
+}
+
+
+.policy-section:last-child {
+  border-bottom: none;
+}
+
+
+.policy-section-heading {
+  margin-bottom: 18px;
+}
+
+
+.policy-eyebrow {
+  margin: 0 0 5px;
+
+  color: #7694ff;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+
+.policy-section-heading h3 {
+  margin: 0;
+
+  color: #e8ebf0;
+
+  font-size: 15px;
+  font-weight: 650;
+}
+
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+
+.policy-metric {
+  min-width: 0;
+}
+
+
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-bottom: 9px;
+}
+
+
+.metric-top span {
+  color: #8c99ad;
+
+  font-size: 11px;
+}
+
+
+.metric-top strong {
+  color: #dce2eb;
+
+  font-size: 12px;
+}
+
+
+.metric-bar {
+  height: 5px;
+
+  border-radius: 999px;
+
+  background: #191e27;
+
+  overflow: hidden;
+}
+
+
+.metric-bar-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #718cff;
+}
+
+
+.metric-level {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #5f6c80;
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+
+.threshold-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+
+.threshold-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 15px;
+
+  border: 1px solid #242a34;
+  border-radius: 8px;
+
+  background: #10131a;
+
+  color: #8995a9;
+}
+
+
+.threshold-item svg {
+  color: #819cff;
+}
+
+
+.threshold-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+.threshold-item span {
+  color: #7f8da2;
+
+  font-size: 11px;
+}
+
+
+.threshold-item strong {
+  color: #e7ebf1;
+
+  font-size: 15px;
+}
+
+
+.risk-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+
+.risk-control {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 15px;
+
+  border: 1px solid #242a34;
+  border-radius: 8px;
+
+  background: #10131a;
+}
+
+
+.risk-control-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 7px;
+
+  background: #171921;
+
+  color: #a8b4c8;
+}
+
+
+.risk-control-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+.risk-control-content span {
+  color: #7f8da2;
+
+  font-size: 11px;
+}
+
+
+.risk-control-content strong {
+  color: #e7ebf1;
+
+  font-size: 15px;
+}
+
+
+.risk-control-content small {
+  color: #69768a;
+
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+
+.policies-state {
+  min-height: 240px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px solid #252b36;
+  border-radius: 12px;
+
+  background: #0d1016;
+
+  color: #8c99ad;
+
+  font-size: 13px;
+}
+
+
+.policies-error {
+  color: #c5ccd8;
+}
+
+
+.policies-error svg {
+  color: #d9a15c;
+}
+
+
+.policies-error div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+
+.policies-error strong {
+  color: #e5e9ef;
+}
+
+
+.policies-error span {
+  color: #77849a;
+}
+
+
+@media (max-width: 1100px) {
+
+  .metric-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .governance-flow {
+    overflow-x: auto;
+  }
+
+}
+
+
+@media (max-width: 760px) {
+
+  .policies-page .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .threshold-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .governance-flow {
+    justify-content: flex-start;
+  }
+
+  .flow-line {
+    min-width: 30px;
+  }
+
+}
+
+
+@media (max-width: 480px) {
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-card-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+}
