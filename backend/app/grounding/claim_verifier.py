@@ -32,7 +32,44 @@ class ClaimVerifier:
                 reason="No trusted enterprise evidence found.",
             )
 
-        document = documents[0]
+        # ---------------------------------------------------------
+        # SELECT THE MOST SPECIFIC PRODUCT DOCUMENT
+        # ---------------------------------------------------------
+        #
+        # KnowledgeBase.search() may return multiple documents for
+        # generic claims such as "this investment".
+        #
+        # Prefer a document whose complete product name is explicitly
+        # mentioned in the claim.
+        # ---------------------------------------------------------
+
+        document = None
+
+        for candidate in documents:
+            product = candidate.get("product", "").lower().strip()
+
+            if product and product in claim_lower:
+                document = candidate
+                break
+
+        # If the claim does not explicitly identify a product,
+        # do not guess which enterprise document applies.
+        if document is None:
+
+            if len(documents) > 1:
+                return VerificationResult(
+                    claim=claim,
+                    status="UNKNOWN",
+                    confidence=0.30,
+                    evidence=None,
+                    reason=(
+                        "Multiple enterprise products match the claim, "
+                        "but the claim does not identify a specific product."
+                    ),
+                )
+
+            document = documents[0]
+
         facts = document.get("facts", {})
 
         # ---------------------------------------------------------
