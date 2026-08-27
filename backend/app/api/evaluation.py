@@ -48,9 +48,14 @@ def evaluate_response(request: EvaluationRequest):
     application_policy = policy_registry.get(request.application)
 
     # 4. Convert detector signals into Risk Engine inputs
+    grounding_unsupported = round(
+        analysis.claim_score * grounding.unknown_score,
+        2,
+    )
+
     risk = risk_engine.assess(
         hallucination=grounding.contradiction_score,
-        unsupported_claim=analysis.claim_score,
+        unsupported_claim=grounding_unsupported,
         privacy=analysis.pii_score,
         bias=0.0,
         safety=0.0,
@@ -78,8 +83,7 @@ def evaluate_response(request: EvaluationRequest):
         critical_risks.append("critical_pii")
 
     if (
-        request.application == "financial_decision"
-        and grounding.contradiction_score
+        grounding.contradiction_score
         >= application_policy.financial_claim_threshold
     ):
         critical_risks.append("high_risk_financial_claim")
