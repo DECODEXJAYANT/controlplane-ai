@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.evaluation import router as evaluation_router
+from app.db.database import initialize_database
 
 
 app = FastAPI(
@@ -9,6 +10,10 @@ app = FastAPI(
     description="Adaptive Autonomy Layer for Enterprise AI",
     version="0.1.0",
 )
+
+
+# Initialize SQLite database
+initialize_database()
 
 
 # Allow the React frontend to communicate with the API

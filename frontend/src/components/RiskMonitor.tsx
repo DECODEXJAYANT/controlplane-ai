@@ -8,6 +8,8 @@ import {
   UserCheck,
 } from "lucide-react";
 
+import "./RiskMonitor.css";
+
 interface AuditRecord {
   id: number;
   timestamp: string;
@@ -351,8 +353,6 @@ function RiskMonitor() {
             </div>
 
             {records
-              .slice()
-              .reverse()
               .slice(0, 10)
               .map((record) => (
                 <div
