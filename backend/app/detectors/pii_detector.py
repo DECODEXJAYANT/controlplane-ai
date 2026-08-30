@@ -21,6 +21,8 @@ class PIIDetector:
         "aadhaar": r"\b\d{4}[-\s]\d{4}[-\s]\d{4}\b",
 
         "credit_card": r"\b(?:\d{4}[-\s]?){3}\d{4}\b",
+
+        "account_number": r"\b(?:account\s*(?:number|no\.?)|a\/c)\s*(?:is\s+|:|#|-)?\s*\d{8,18}\b",
     }
 
     def detect(self, text: str) -> PIIDetection:
@@ -48,6 +50,7 @@ class PIIDetector:
             "pan": 0.85,
             "aadhaar": 0.95,
             "credit_card": 1.0,
+            "account_number": 0.90,
         }
 
         score = max(

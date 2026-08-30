@@ -15,7 +15,10 @@ from app.services.audit_service import AuditService
 router = APIRouter(prefix="/api", tags=["Evaluation"])
 
 
+# ---------------------------------------------------------
 # Engine instances
+# ---------------------------------------------------------
+
 risk_engine = RiskEngine()
 consequence_engine = ConsequenceEngine()
 policy_registry = PolicyRegistry()
@@ -28,16 +31,26 @@ claim_verifier = ClaimVerifier(knowledge_base)
 grounding_engine = GroundingEngine(claim_verifier)
 
 
+# ---------------------------------------------------------
+# Request model
+# ---------------------------------------------------------
+
 class EvaluationRequest(BaseModel):
     application: str
     response: str
 
 
+# ---------------------------------------------------------
+# Evaluate AI response
+# ---------------------------------------------------------
+
 @router.post("/evaluate")
 def evaluate_response(request: EvaluationRequest):
 
     # 1. Analyze the actual AI response
-    analysis = response_analyzer.analyze(request.response)
+    analysis = response_analyzer.analyze(
+        request.response
+    )
 
     # 2. Verify detected claims against enterprise knowledge
     grounding = grounding_engine.verify_claims(
@@ -45,7 +58,9 @@ def evaluate_response(request: EvaluationRequest):
     )
 
     # 3. Load the application-specific governance policy
-    application_policy = policy_registry.get(request.application)
+    application_policy = policy_registry.get(
+        request.application
+    )
 
     # 4. Convert detector signals into Risk Engine inputs
     grounding_unsupported = round(
@@ -76,26 +91,66 @@ def evaluate_response(request: EvaluationRequest):
     #    the normal numerical decision
     critical_risks = []
 
+    # -----------------------------------------------------
+    # Critical PII
+    # -----------------------------------------------------
+
     if (
         analysis.pii_score
         >= application_policy.critical_pii_threshold
     ):
         critical_risks.append("critical_pii")
 
-    if (
-        grounding.contradiction_score
-        >= application_policy.financial_claim_threshold
-    ):
-        critical_risks.append("high_risk_financial_claim")
+    # -----------------------------------------------------
+    # Financial-specific governance rules
+    #
+    # These rules ONLY apply to the financial_decision
+    # application. This prevents unrelated applications
+    # from being incorrectly classified as financial risks.
+    # -----------------------------------------------------
 
+    if request.application == "financial_decision":
+
+        # Financial/compliance policy violation
+        if analysis.policy_score > 0:
+            critical_risks.append(
+                "high_risk_financial_claim"
+            )
+
+        # Contradicted enterprise claim
+        elif (
+            grounding.contradiction_score
+            >= application_policy.financial_claim_threshold
+        ):
+            critical_risks.append(
+                "high_risk_financial_claim"
+            )
+
+        # Unsupported claim in a consequential
+        # financial workflow
+        elif (
+            grounding.unknown_score > 0
+            and analysis.claim_score > 0
+        ):
+            critical_risks.append(
+                "high_risk_financial_claim"
+            )
+
+    # -----------------------------------------------------
     # 7. Make final autonomy/governance decision
+    # -----------------------------------------------------
+
     decision = autonomy_engine.decide(
         risk_score=risk.overall_score,
         consequence_score=consequence.overall_score,
         policy=application_policy,
         critical_risks=critical_risks,
     )
-    
+
+    # -----------------------------------------------------
+    # 8. Record evaluation in audit log
+    # -----------------------------------------------------
+
     audit_service.record(
         application=request.application,
         response=request.response,
@@ -103,24 +158,29 @@ def evaluate_response(request: EvaluationRequest):
         analysis={
             "overall_signal": analysis.overall_risk_signal,
             "critical_risks": critical_risks,
+
             "pii": {
                 "detected": len(analysis.pii_entities) > 0,
                 "entities": analysis.pii_entities,
                 "score": analysis.pii_score,
             },
+
             "claims": {
                 "detected": len(analysis.claims) > 0,
                 "claims": analysis.claims,
                 "score": analysis.claim_score,
             },
+
             "policy": {
                 "violations": analysis.policy_violations,
                 "score": analysis.policy_score,
             },
+
             "grounding": {
                 "overall_score": grounding.overall_score,
                 "contradiction_score": grounding.contradiction_score,
                 "unknown_score": grounding.unknown_score,
+
                 "verifications": [
                     {
                         "claim": result.claim,
@@ -160,7 +220,10 @@ def evaluate_response(request: EvaluationRequest):
         },
     )
 
-    # 8. Return complete explainable evaluation
+    # -----------------------------------------------------
+    # 9. Return complete explainable evaluation
+    # -----------------------------------------------------
+
     return {
         "application": request.application,
 
@@ -168,6 +231,7 @@ def evaluate_response(request: EvaluationRequest):
 
         "analysis": {
             "overall_signal": analysis.overall_risk_signal,
+
             "critical_risks": critical_risks,
 
             "pii": {
@@ -191,6 +255,7 @@ def evaluate_response(request: EvaluationRequest):
                 "overall_score": grounding.overall_score,
                 "contradiction_score": grounding.contradiction_score,
                 "unknown_score": grounding.unknown_score,
+
                 "verifications": [
                     {
                         "claim": result.claim,
@@ -230,8 +295,14 @@ def evaluate_response(request: EvaluationRequest):
         },
     }
 
+
+# ---------------------------------------------------------
+# Audit API
+# ---------------------------------------------------------
+
 @router.get("/audit")
 def get_audit_log():
+
     records = audit_service.list_records()
 
     return {
@@ -252,6 +323,11 @@ def get_audit_record(record_id: int):
 
     return record
 
+
+# ---------------------------------------------------------
+# Policies API
+# ---------------------------------------------------------
+
 @router.get("/policies")
 def get_policies():
 
@@ -259,6 +335,7 @@ def get_policies():
 
     return {
         "count": len(policies),
+
         "policies": [
             {
                 "name": policy.name,
@@ -285,6 +362,7 @@ def get_policies():
                     "financial_claim_action": policy.financial_claim_action,
                 },
             }
+
             for policy in policies
         ],
     }

@@ -11,22 +11,49 @@ class ClaimDetection:
 class ClaimDetector:
 
     CLAIM_PATTERNS = [
-        # Numeric claims such as 25%, 18.5%, etc.
+
+        # ---------------------------------------------------------
+        # Numeric / financial claims
+        # ---------------------------------------------------------
         r"\b\d+(?:\.\d+)?%",
 
-        # Strong assertion language.
-        r"\b(?:guaranteed|guarantees|will|always|never)\b",
+        r"\$\s?\d+(?:,\d{3})*(?:\.\d+)?",
 
-        # Eligibility / compliance claims.
+        # ---------------------------------------------------------
+        # Strong guarantee / certainty language
+        # ---------------------------------------------------------
+        r"\b(?:guaranteed|guarantees|guarantee)\b",
+
+        r"\b(?:always|never)\b",
+
+        # ---------------------------------------------------------
+        # Eligibility / compliance claims
+        # ---------------------------------------------------------
         r"\b(?:approved|eligible|qualify|qualifies|qualified|certified|compliant)\b",
 
-        # Evidence / attribution claims.
+        # ---------------------------------------------------------
+        # Evidence / attribution claims
+        # ---------------------------------------------------------
         r"\b(?:according to|as per|based on)\b",
+
+        # ---------------------------------------------------------
+        # Financial outcome claims
+        # ---------------------------------------------------------
+        r"\b(?:return|returns|profit|profits|interest rate|yield)\b",
+
+        # ---------------------------------------------------------
+        # Strong outcome assertions
+        #
+        # Avoid generic "will" because normal workflow language
+        # such as "we will review your application" is not itself
+        # a high-risk claim.
+        # ---------------------------------------------------------
+        r"\b(?:will|can)\s+(?:receive|earn|get|generate|provide|pay|save)\b",
     ]
 
     def detect(self, text: str) -> ClaimDetection:
 
-        # Split the response into sentences.
+        # Split response into sentences.
         sentences = re.split(
             r"(?<=[.!?])\s+",
             text.strip(),
@@ -40,7 +67,7 @@ class ClaimDetector:
                 continue
 
             # Determine whether this sentence contains
-            # at least one claim indicator.
+            # at least one meaningful claim indicator.
             is_claim = any(
                 re.search(
                     pattern,
@@ -59,8 +86,8 @@ class ClaimDetector:
                 score=0.0,
             )
 
-        # Keep the scoring behavior approximately compatible
-        # with the previous detector.
+        # Keep scoring behavior compatible with the
+        # existing detector.
         score = min(
             1.0,
             0.25 + len(claims) * 0.10,

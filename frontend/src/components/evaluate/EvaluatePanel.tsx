@@ -1,11 +1,18 @@
 import { useState } from "react";
+import "./EvaluatePanel.css";
+
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Loader2,
   ShieldCheck,
   XCircle,
 } from "lucide-react";
+
+/* =========================================================
+   TYPES
+   ========================================================= */
 
 type EvidenceFacts = {
   guaranteed_return?: boolean;
@@ -87,9 +94,138 @@ type EvaluationResult = {
   };
 };
 
+/* =========================================================
+   LABEL FORMATTING
+   ========================================================= */
+
+function formatLabel(value: string): string {
+  const labels: Record<string, string> = {
+    financial_decision: "Financial Decision",
+    customer_support: "Customer Support",
+    internal_knowledge: "Internal Knowledge",
+
+    critical_pii: "Critical PII Exposure",
+    high_risk_financial_claim: "High-Risk Financial Claim",
+
+    account_number: "Account Number",
+    credit_card: "Credit Card",
+    phone: "Phone Number",
+    email: "Email Address",
+    pan: "PAN",
+    aadhaar: "Aadhaar",
+
+    guaranteed_return: "Guaranteed Return",
+    risk_free_investment: "Risk-Free Investment",
+    compliance_bypass: "Compliance Bypass",
+    credential_sharing: "Credential Sharing",
+
+    BLOCK: "Block",
+    HUMAN_REVIEW: "Human Review",
+    ALLOW: "Allow",
+    VERIFY: "Verify",
+
+    CONFIRMED: "Confirmed",
+    CONTRADICTED: "Contradicted",
+    UNKNOWN: "Unknown",
+  };
+
+  return (
+    labels[value] ??
+    value
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
+}
+
+/* =========================================================
+   SCORE FORMATTER
+   ========================================================= */
+
+function formatScore(value: number | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "0.00";
+  }
+
+  return value.toFixed(2);
+}
+
+/* =========================================================
+   GOVERNANCE PIPELINE
+   ========================================================= */
+
+function Pipeline({
+  result,
+}: {
+  result: EvaluationResult;
+}) {
+  const stages = [
+    {
+      label: "INPUT",
+      value: "AI RESPONSE",
+    },
+    {
+      label: "DETECT",
+      value: "SIGNALS",
+    },
+    {
+      label: "GROUND",
+      value: "EVIDENCE",
+    },
+    {
+      label: "RISK",
+      value: formatScore(result.risk.overall_score),
+    },
+    {
+      label: "CONSEQUENCE",
+      value: formatScore(result.consequence.overall_score),
+    },
+    {
+      label: "GOVERN",
+      value: formatLabel(result.decision.action),
+    },
+  ];
+
+  return (
+    <div className="governance-pipeline">
+      {stages.map((stage, index) => (
+        <div
+          className="pipeline-stage-wrapper"
+          key={stage.label}
+        >
+          <div
+            className={`pipeline-stage ${
+              index === stages.length - 1
+                ? `decision-${result.decision.action.toLowerCase()}`
+                : ""
+            }`}
+          >
+            <span className="pipeline-stage-label">
+              {stage.label}
+            </span>
+
+            <strong>{stage.value}</strong>
+          </div>
+
+          {index < stages.length - 1 && (
+            <ArrowRight
+              size={15}
+              className="pipeline-arrow"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   MAIN COMPONENT
+   ========================================================= */
+
 function EvaluatePanel() {
-  const [application, setApplication] =
-    useState("financial_decision");
+  const [application, setApplication] = useState(
+    "financial_decision"
+  );
 
   const [response, setResponse] = useState("");
 
@@ -99,6 +235,10 @@ function EvaluatePanel() {
   const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState("");
+
+  /* =======================================================
+     EVALUATE RESPONSE
+     ======================================================= */
 
   const evaluateResponse = async () => {
     if (!response.trim()) {
@@ -115,10 +255,12 @@ function EvaluatePanel() {
         "http://127.0.0.1:8000/api/evaluate",
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
+
           body: JSON.stringify({
             application,
             response,
@@ -127,9 +269,19 @@ function EvaluatePanel() {
       );
 
       if (!apiResponse.ok) {
-        throw new Error(
-          `API request failed: ${apiResponse.status}`
-        );
+        let message = `API request failed: ${apiResponse.status}`;
+
+        try {
+          const errorData = await apiResponse.json();
+
+          if (errorData?.detail) {
+            message = errorData.detail;
+          }
+        } catch {
+          // Keep default error message.
+        }
+
+        throw new Error(message);
       }
 
       const data: EvaluationResult =
@@ -137,42 +289,60 @@ function EvaluatePanel() {
 
       setResult(data);
     } catch (err) {
-      console.error(err);
+      console.error("ControlPlane evaluation error:", err);
 
-      setError(
-        "Unable to connect to ControlPlane backend."
-      );
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(
+          "Unable to connect to ControlPlane backend."
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  /* =======================================================
+     DECISION ICON
+     ======================================================= */
+
   const getDecisionIcon = () => {
-    if (!result) return null;
-
-    if (result.decision.action === "BLOCK") {
-      return <XCircle size={22} />;
+    if (!result) {
+      return null;
     }
 
-    if (result.decision.action === "HUMAN_REVIEW") {
-      return <AlertTriangle size={22} />;
-    }
+    switch (result.decision.action) {
+      case "BLOCK":
+        return <XCircle size={22} />;
 
-    return <CheckCircle2 size={22} />;
+      case "HUMAN_REVIEW":
+        return <AlertTriangle size={22} />;
+
+      case "VERIFY":
+        return <AlertTriangle size={22} />;
+
+      case "ALLOW":
+      default:
+        return <CheckCircle2 size={22} />;
+    }
   };
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
 
   return (
     <div className="evaluate-panel">
 
-      {/* ===================================================== */}
-      {/* INPUT SECTION */}
-      {/* ===================================================== */}
+      {/* ===================================================
+          INPUT SECTION
+      =================================================== */}
 
       <div className="evaluation-inputs">
 
         {/* Application */}
         <div className="form-group">
-
           <label htmlFor="application">
             Application
           </label>
@@ -180,9 +350,15 @@ function EvaluatePanel() {
           <select
             id="application"
             value={application}
-            onChange={(event) =>
-              setApplication(event.target.value)
-            }
+            onChange={(event) => {
+              setApplication(event.target.value);
+
+              // Prevent showing an old evaluation
+              // for a different application.
+              setResult(null);
+              setError("");
+            }}
+            disabled={loading}
           >
             <option value="financial_decision">
               Financial Decision
@@ -196,14 +372,12 @@ function EvaluatePanel() {
               Internal Knowledge
             </option>
           </select>
-
         </div>
 
         {/* AI Response */}
         <div className="form-group">
 
           <div className="textarea-header">
-
             <label htmlFor="response">
               AI Response
             </label>
@@ -211,26 +385,30 @@ function EvaluatePanel() {
             <span>
               {response.length} characters
             </span>
-
           </div>
 
           <textarea
             id="response"
             value={response}
-            onChange={(event) =>
-              setResponse(event.target.value)
-            }
+            onChange={(event) => {
+              setResponse(event.target.value);
+
+              if (error) {
+                setError("");
+              }
+            }}
             placeholder="Paste an AI-generated response here..."
             rows={8}
+            disabled={loading}
           />
-
         </div>
 
         {/* Evaluate Button */}
         <button
+          type="button"
           className="evaluate-button"
           onClick={evaluateResponse}
-          disabled={loading}
+          disabled={loading || !response.trim()}
         >
           {loading ? (
             <>
@@ -252,9 +430,9 @@ function EvaluatePanel() {
 
       </div>
 
-      {/* ===================================================== */}
-      {/* ERROR */}
-      {/* ===================================================== */}
+      {/* ===================================================
+          ERROR
+      =================================================== */}
 
       {error && (
         <div className="evaluation-error">
@@ -266,16 +444,22 @@ function EvaluatePanel() {
         </div>
       )}
 
-      {/* ===================================================== */}
-      {/* RESULTS */}
-      {/* ===================================================== */}
+      {/* ===================================================
+          RESULTS
+      =================================================== */}
 
       {result && (
         <div className="evaluation-results">
 
-          {/* ================================================= */}
-          {/* GOVERNANCE DECISION */}
-          {/* ================================================= */}
+          {/* =================================================
+              PIPELINE
+          ================================================= */}
+
+          <Pipeline result={result} />
+
+          {/* =================================================
+              GOVERNANCE DECISION
+          ================================================= */}
 
           <section
             className={`decision-card ${result.decision.action.toLowerCase()}`}
@@ -292,7 +476,9 @@ function EvaluatePanel() {
               </span>
 
               <h2>
-                {result.decision.action}
+                {formatLabel(
+                  result.decision.action
+                )}
               </h2>
 
               <p>
@@ -308,16 +494,18 @@ function EvaluatePanel() {
               </span>
 
               <strong>
-                {result.decision.autonomy_score.toFixed(2)}
+                {formatScore(
+                  result.decision.autonomy_score
+                )}
               </strong>
 
             </div>
 
           </section>
 
-          {/* ================================================= */}
-          {/* SCORE CARDS */}
-          {/* ================================================= */}
+          {/* =================================================
+              SCORE CARDS
+          ================================================= */}
 
           <div className="score-grid">
 
@@ -331,7 +519,9 @@ function EvaluatePanel() {
                 </span>
 
                 <strong>
-                  {result.risk.overall_score.toFixed(2)}
+                  {formatScore(
+                    result.risk.overall_score
+                  )}
                 </strong>
 
               </div>
@@ -340,7 +530,13 @@ function EvaluatePanel() {
                 <div
                   className="score-bar-fill"
                   style={{
-                    width: `${result.risk.overall_score * 100}%`,
+                    width: `${Math.min(
+                      Math.max(
+                        result.risk.overall_score * 100,
+                        0
+                      ),
+                      100
+                    )}%`,
                   }}
                 />
               </div>
@@ -361,7 +557,9 @@ function EvaluatePanel() {
                 </span>
 
                 <strong>
-                  {result.consequence.overall_score.toFixed(2)}
+                  {formatScore(
+                    result.consequence.overall_score
+                  )}
                 </strong>
 
               </div>
@@ -370,7 +568,14 @@ function EvaluatePanel() {
                 <div
                   className="score-bar-fill"
                   style={{
-                    width: `${result.consequence.overall_score * 100}%`,
+                    width: `${Math.min(
+                      Math.max(
+                        result.consequence.overall_score *
+                          100,
+                        0
+                      ),
+                      100
+                    )}%`,
                   }}
                 />
               </div>
@@ -391,7 +596,9 @@ function EvaluatePanel() {
                 </span>
 
                 <strong>
-                  {result.analysis.overall_signal.toFixed(2)}
+                  {formatScore(
+                    result.analysis.overall_signal
+                  )}
                 </strong>
 
               </div>
@@ -400,7 +607,14 @@ function EvaluatePanel() {
                 <div
                   className="score-bar-fill"
                   style={{
-                    width: `${result.analysis.overall_signal * 100}%`,
+                    width: `${Math.min(
+                      Math.max(
+                        result.analysis.overall_signal *
+                          100,
+                        0
+                      ),
+                      100
+                    )}%`,
                   }}
                 />
               </div>
@@ -413,9 +627,9 @@ function EvaluatePanel() {
 
           </div>
 
-          {/* ================================================= */}
-          {/* CRITICAL RISKS */}
-          {/* ================================================= */}
+          {/* =================================================
+              CRITICAL RISKS
+          ================================================= */}
 
           <section className="result-card critical-risks-card">
 
@@ -427,42 +641,41 @@ function EvaluatePanel() {
               Critical Risks
             </h3>
 
-            {result.analysis.critical_risks.length === 0 ? (
-
+            {result.analysis.critical_risks.length ===
+            0 ? (
               <div className="no-risk">
+
                 <CheckCircle2 size={17} />
+
                 No critical risks detected.
+
               </div>
-
             ) : (
-
               <div className="risk-list">
 
                 {result.analysis.critical_risks.map(
                   (risk) => (
-
                     <div
                       key={risk}
                       className="risk-tag"
                     >
+
                       <AlertTriangle size={16} />
 
-                      {risk.replaceAll("_", " ")}
+                      {formatLabel(risk)}
 
                     </div>
-
                   )
                 )}
 
               </div>
-
             )}
 
           </section>
 
-          {/* ================================================= */}
-          {/* ANALYSIS + CONSEQUENCE */}
-          {/* ================================================= */}
+          {/* =================================================
+              ANALYSIS + CONSEQUENCE
+          ================================================= */}
 
           <div className="analysis-grid">
 
@@ -486,19 +699,23 @@ function EvaluatePanel() {
 
                 <MetricRow
                   label="Unsupported Claims"
-                  value={result.risk.unsupported_claim}
+                  value={
+                    result.risk.unsupported_claim
+                  }
                 />
 
                 <MetricRow
                   label="Policy Violation"
-                  value={result.risk.policy_violation}
+                  value={
+                    result.risk.policy_violation
+                  }
                 />
 
               </div>
 
               {/* PII Entities */}
-              {result.analysis.pii.entities.length > 0 && (
-
+              {result.analysis.pii.entities.length >
+                0 && (
                 <div className="tag-section">
 
                   <span>
@@ -509,26 +726,23 @@ function EvaluatePanel() {
 
                     {result.analysis.pii.entities.map(
                       (entity) => (
-
                         <span
                           className="small-tag"
                           key={entity}
                         >
-                          {entity}
+                          {formatLabel(entity)}
                         </span>
-
                       )
                     )}
 
                   </div>
 
                 </div>
-
               )}
 
               {/* Policy Violations */}
-              {result.analysis.policy.violations.length > 0 && (
-
+              {result.analysis.policy.violations
+                .length > 0 && (
                 <div className="tag-section">
 
                   <span>
@@ -539,21 +753,20 @@ function EvaluatePanel() {
 
                     {result.analysis.policy.violations.map(
                       (violation) => (
-
                         <span
                           className="policy-tag"
                           key={violation}
                         >
-                          {violation}
+                          {formatLabel(
+                            violation
+                          )}
                         </span>
-
                       )
                     )}
 
                   </div>
 
                 </div>
-
               )}
 
             </section>
@@ -570,11 +783,7 @@ function EvaluatePanel() {
               </h3>
 
               <p className="application-name">
-                {result.application
-                  .replaceAll("_", " ")
-                  .replace(/\b\w/g, (letter) =>
-                    letter.toUpperCase()
-                  )}
+                {formatLabel(result.application)}
               </p>
 
               <div className="metric-list">
@@ -582,7 +791,8 @@ function EvaluatePanel() {
                 <MetricRow
                   label="Workflow Criticality"
                   value={
-                    result.consequence.workflow_criticality
+                    result.consequence
+                      .workflow_criticality
                   }
                 />
 
@@ -596,14 +806,16 @@ function EvaluatePanel() {
                 <MetricRow
                   label="Regulatory Exposure"
                   value={
-                    result.consequence.regulatory_exposure
+                    result.consequence
+                      .regulatory_exposure
                   }
                 />
 
                 <MetricRow
                   label="Data Sensitivity"
                   value={
-                    result.consequence.data_sensitivity
+                    result.consequence
+                      .data_sensitivity
                   }
                 />
 
@@ -620,12 +832,11 @@ function EvaluatePanel() {
 
           </div>
 
-          {/* ================================================= */}
-          {/* ENTERPRISE GROUNDING */}
-          {/* ================================================= */}
+          {/* =================================================
+              ENTERPRISE GROUNDING
+          ================================================= */}
 
           {result.analysis.grounding && (
-
             <section className="result-card grounding-card">
 
               <div className="grounding-header">
@@ -643,8 +854,9 @@ function EvaluatePanel() {
                 </div>
 
                 <div className="grounding-score">
-                  {result.analysis.grounding.overall_score.toFixed(
-                    2
+                  {formatScore(
+                    result.analysis.grounding
+                      .overall_score
                   )}
                 </div>
 
@@ -660,10 +872,10 @@ function EvaluatePanel() {
                   </span>
 
                   <strong>
-                    {
+                    {formatScore(
                       result.analysis.grounding
                         .contradiction_score
-                    }
+                    )}
                   </strong>
 
                 </div>
@@ -675,170 +887,182 @@ function EvaluatePanel() {
                   </span>
 
                   <strong>
-                    {
+                    {formatScore(
                       result.analysis.grounding
                         .unknown_score
-                    }
+                    )}
                   </strong>
 
                 </div>
 
               </div>
 
-              {/* ================================================= */}
-              {/* VERIFICATIONS */}
-              {/* ================================================= */}
-
+              {/* Verifications */}
               <div className="verification-list">
 
-                {result.analysis.grounding.verifications.map(
-                  (verification, index) => (
+                {result.analysis.grounding
+                  .verifications.length === 0 ? (
+                  <div className="no-risk">
 
-                    <div
-                      key={index}
-                      className="grounding-verification"
-                    >
+                    <CheckCircle2 size={17} />
 
-                      {/* Verification Header */}
-                      <div className="verification-header">
+                    No claims required verification.
 
-                        <div
-                          className={`verification-status ${verification.status.toLowerCase()}`}
-                        >
-                          {verification.status}
+                  </div>
+                ) : (
+                  result.analysis.grounding.verifications.map(
+                    (verification, index) => (
+                      <div
+                        key={`${verification.claim}-${index}`}
+                        className="grounding-verification"
+                      >
+
+                        {/* Verification Header */}
+                        <div className="verification-header">
+
+                          <div
+                            className={`verification-status ${verification.status.toLowerCase()}`}
+                          >
+                            {formatLabel(
+                              verification.status
+                            )}
+                          </div>
+
+                          <span className="verification-confidence">
+                            Confidence{" "}
+                            {Math.round(
+                              verification.confidence *
+                                100
+                            )}
+                            %
+                          </span>
+
                         </div>
 
-                        <span className="verification-confidence">
-                          Confidence{" "}
-                          {Math.round(
-                            verification.confidence * 100
-                          )}
-                          %
-                        </span>
+                        {/* Claim */}
+                        <p className="verification-claim">
+                          {verification.claim}
+                        </p>
 
-                      </div>
+                        {/* Reason */}
+                        <p className="verification-reason">
+                          {verification.reason}
+                        </p>
 
-                      {/* Claim */}
-                      <p className="verification-claim">
-                        {verification.claim}
-                      </p>
+                        {/* Enterprise Evidence */}
+                        {verification.evidence && (
+                          <div className="enterprise-evidence">
 
-                      {/* Reason */}
-                      <p className="verification-reason">
-                        {verification.reason}
-                      </p>
+                            <div className="evidence-header">
 
-                      {/* ================================================= */}
-                      {/* ENTERPRISE EVIDENCE */}
-                      {/* ================================================= */}
+                              <div>
 
-                      {verification.evidence && (
+                                <span className="section-eyebrow">
+                                  ENTERPRISE EVIDENCE
+                                </span>
 
-                        <div className="enterprise-evidence">
+                                <h4>
+                                  {verification
+                                    .evidence
+                                    .product ??
+                                    "Enterprise Record"}
+                                </h4>
 
-                          <div className="evidence-header">
+                              </div>
 
-                            <div>
-
-                              <span className="section-eyebrow">
-                                ENTERPRISE EVIDENCE
+                              <span className="evidence-category">
+                                {verification
+                                  .evidence
+                                  .category ??
+                                  "enterprise"}
                               </span>
 
-                              <h4>
-                                {verification.evidence.product ??
-                                  "Enterprise Record"}
-                              </h4>
+                            </div>
+
+                            {/* Evidence Facts */}
+                            {verification.evidence
+                              .facts && (
+                              <div className="evidence-facts">
+
+                                <div className="evidence-fact">
+
+                                  <span>
+                                    Guaranteed Return
+                                  </span>
+
+                                  <strong>
+                                    {verification
+                                      .evidence
+                                      .facts
+                                      .guaranteed_return
+                                      ? "YES"
+                                      : "NO"}
+                                  </strong>
+
+                                </div>
+
+                                <div className="evidence-fact">
+
+                                  <span>
+                                    Maximum Return
+                                  </span>
+
+                                  <strong>
+                                    {verification
+                                      .evidence
+                                      .facts
+                                      .maximum_return_percentage !==
+                                    undefined
+                                      ? `${verification.evidence.facts.maximum_return_percentage}%`
+                                      : "N/A"}
+                                  </strong>
+
+                                </div>
+
+                                <div className="evidence-fact">
+
+                                  <span>
+                                    Premium Eligibility
+                                  </span>
+
+                                  <strong>
+                                    {verification
+                                      .evidence
+                                      .facts
+                                      .premium_eligibility_required
+                                      ? "REQUIRED"
+                                      : "NOT REQUIRED"}
+                                  </strong>
+
+                                </div>
+
+                              </div>
+                            )}
+
+                            {/* Evidence Source */}
+                            <div className="evidence-source">
+
+                              <span>
+                                Source
+                              </span>
+
+                              <strong>
+                                Enterprise Knowledge Base
+                              </strong>
 
                             </div>
 
-                            <span className="evidence-category">
-                              {verification.evidence.category ??
-                                "enterprise"}
-                            </span>
-
                           </div>
+                        )}
 
-                          {/* Evidence Facts */}
-                          {verification.evidence.facts && (
-
-                            <div className="evidence-facts">
-
-                              <div className="evidence-fact">
-
-                                <span>
-                                  Guaranteed Return
-                                </span>
-
-                                <strong>
-                                  {verification.evidence.facts
-                                    .guaranteed_return
-                                    ? "YES"
-                                    : "NO"}
-                                </strong>
-
-                              </div>
-
-                              <div className="evidence-fact">
-
-                                <span>
-                                  Maximum Return
-                                </span>
-
-                                <strong>
-                                  {verification.evidence.facts
-                                    .maximum_return_percentage !==
-                                  undefined
-                                    ? `${verification.evidence.facts.maximum_return_percentage}%`
-                                    : "N/A"}
-                                </strong>
-
-                              </div>
-
-                              <div className="evidence-fact">
-
-                                <span>
-                                  Premium Eligibility
-                                </span>
-
-                                <strong>
-                                  {verification.evidence.facts
-                                    .premium_eligibility_required
-                                    ? "REQUIRED"
-                                    : "NOT REQUIRED"}
-                                </strong>
-
-                              </div>
-
-                            </div>
-
-                          )}
-
-                          {/* Evidence Source */}
-                          <div className="evidence-source">
-
-                            <span>
-                              Source
-                            </span>
-
-                            <strong>
-                              Enterprise Knowledge Base
-                            </strong>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
+                      </div>
+                    )
                   )
                 )}
 
               </div>
 
             </section>
-
           )}
 
         </div>
@@ -848,10 +1072,9 @@ function EvaluatePanel() {
   );
 }
 
-
-/* ========================================================= */
-/* METRIC ROW COMPONENT */
-/* ========================================================= */
+/* =========================================================
+   METRIC ROW COMPONENT
+   ========================================================= */
 
 function MetricRow({
   label,
@@ -860,6 +1083,11 @@ function MetricRow({
   label: string;
   value: number;
 }) {
+  const safeValue = Math.min(
+    Math.max(value ?? 0, 0),
+    1
+  );
+
   return (
     <div className="metric-row">
 
@@ -868,16 +1096,18 @@ function MetricRow({
       </span>
 
       <div className="metric-bar">
+
         <div
           className="metric-bar-fill"
           style={{
-            width: `${value * 100}%`,
+            width: `${safeValue * 100}%`,
           }}
         />
+
       </div>
 
       <strong>
-        {value.toFixed(2)}
+        {formatScore(value)}
       </strong>
 
     </div>

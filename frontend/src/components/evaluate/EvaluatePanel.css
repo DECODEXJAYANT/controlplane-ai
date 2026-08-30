@@ -657,3 +657,188 @@
     min-width: 120px;
   }
 }
+
+/* =========================================================
+   GOVERNANCE PIPELINE
+   ========================================================= */
+
+.governance-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid var(--border-color, #263041);
+  border-radius: 12px;
+  background: var(--panel-background, #0d1117);
+  overflow-x: auto;
+}
+
+.pipeline-stage-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.pipeline-stage {
+  min-width: 105px;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #263041);
+  border-radius: 8px;
+  background: var(--card-background, #111827);
+}
+
+.pipeline-stage-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+}
+
+.pipeline-stage strong {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.pipeline-arrow {
+  flex-shrink: 0;
+  opacity: 0.45;
+}
+
+.pipeline-stage.decision-allow {
+  border-color: #3fb950;
+}
+
+.pipeline-stage.decision-verify {
+  border-color: #d29922;
+}
+
+.pipeline-stage.decision-human_review {
+  border-color: #d29922;
+}
+
+.pipeline-stage.decision-block {
+  border-color: #f85149;
+}
+
+@media (max-width: 900px) {
+  .governance-pipeline {
+    align-items: stretch;
+  }
+
+  .pipeline-stage-wrapper {
+    min-width: 150px;
+  }
+}
+
+/* =========================================================
+   GOVERNANCE PIPELINE
+   ========================================================= */
+
+.governance-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 16px 0;
+  overflow-x: auto;
+}
+
+.pipeline-stage-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pipeline-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 110px;
+  min-height: 58px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  border: 1px solid #29303d;
+  border-radius: 8px;
+  background: #0b0e13;
+}
+
+.pipeline-stage-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #6878a0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.pipeline-stage strong {
+  display: block;
+  color: #e8ecf5;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pipeline-arrow {
+  flex-shrink: 0;
+  color: #4c5870;
+}
+
+.pipeline-stage.decision-allow {
+  border-color: #214936;
+  background: #0b1711;
+}
+
+.pipeline-stage.decision-allow strong {
+  color: #4ade80;
+}
+
+.pipeline-stage.decision-human_review {
+  border-color: #5d4b25;
+  background: #17130a;
+}
+
+.pipeline-stage.decision-human_review strong {
+  color: #e6b84d;
+}
+
+.pipeline-stage.decision-block {
+  border-color: #62303b;
+  background: #180b0f;
+}
+
+.pipeline-stage.decision-block strong {
+  color: #ff6171;
+}
+
+.pipeline-stage.decision-verify {
+  border-color: #3c4770;
+  background: #0d111d;
+}
+
+.pipeline-stage.decision-verify strong {
+  color: #91a4ff;
+}
+
+
+/* =========================================================
+   PIPELINE RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .governance-pipeline {
+    align-items: stretch;
+    padding-bottom: 10px;
+  }
+
+  .pipeline-stage {
+    min-width: 100px;
+  }
+}
